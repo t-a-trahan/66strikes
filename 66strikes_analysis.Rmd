@@ -27,6 +27,8 @@ library(stringr) #for strings
 library(lubridate) #for dates
 library(tidygeocoder) #for geocoding
 library(leaflet) #for maps
+library(leaflet.extras)
+library(scales)  # Load the scales package for comma formatting
 
 ```
 
@@ -35,38 +37,42 @@ library(leaflet) #for maps
 ```{r data, include=FALSE}
 #load strike data
 
-strike <- read.csv("raw_strike_list.csv")
+strike <- read.csv("strike_geocoded.csv")
 
-strike <- strike %>% select(-Notes)
-
-# Replace blank observations with NA
-strike <- strike %>%
-  mutate(across(everything(), ~ na_if(., "")))
-
-
-```
-
-```{r geocode, include=FALSE}
-# Use the geo function to get latitude and longitude
-
-# Keep this up here because it takes so long
-
-strike <- strike %>%
-  geocode(address = Location, method = 'osm', lat = latitude, long = longitude)
-
+strike <- strike %>% select(-Notes, Days.Lost)
 ```
 
 
 ```{r wrangling, include=FALSE}
 #wrangling the data
 
+# Replace blank observations with NA, but only for character columns
+strike <- strike %>%
+  mutate(across(where(is.character), ~ na_if(., "")))
+
 # Replace invalid dates with NA in the Date.Started column using parse_date_time
 strike <- strike %>%
   mutate(Date.Started = parse_date_time(Date.Started, orders = c("mdy", "dmy", "ymd"), quiet = TRUE)) %>%
   mutate(Date.Settled = parse_date_time(Date.Settled, orders = c("mdy", "dmy", "ymd"), quiet = TRUE))
 
+# Ensure 'Date.Started' and 'Date.Settled' are in date format, then create 'Length' column
+strike <- strike %>%
+  mutate(
+    Date.Started = parse_date_time(Date.Started, orders = c("mdy", "dmy", "ymd"), quiet = TRUE),
+    Date.Settled = parse_date_time(Date.Settled, orders = c("mdy", "dmy", "ymd"), quiet = TRUE),
+    strike_length = as.numeric(difftime(Date.Settled, Date.Started, units = "days"))  # Create 'strike_length' column
+  )
+
 #strikers column
 colnames(strike)[which(colnames(strike) == "Number.of.Employees.on.Strike")] <- "strikers"
+
+
+
+# Add a new column 'hours_lost' by multiplying 'strike_length' by 24 and 'strikers'
+strike <- strike %>%
+  mutate(
+    hours_lost = as.numeric(strike_length) * 24 * replace_na(as.numeric(strikers), 0)  # Ensure numeric conversion and handle NAs
+  )
 
 # Remove all spaces from observations in the 'Strikers' column
 strike$strikers <- as.numeric(str_squish(strike$strikers))
@@ -80,29 +86,46 @@ strike <- strike %>%
   filter(Date.Started >= as.Date("1966-01-01"))  # Keep rows where Date.Started is on or after January 1, 1966
 
 
-
 ```
 
-# How many strikes in 1966? How many employees were on strike?
-
-Total strikes:
 
 ```{r}
-# Print the total number of rows
-print(nrow(strike))
+
+# Create a summary table with total strikes, total strikers, total strike length, and total hours lost
+strike_summary <- strike %>%
+  summarise(
+    total_strikes = comma(n()),                        # Total number of strikes with comma formatting
+    total_strikers = comma(sum(strikers, na.rm = TRUE)), # Total number of strikers with comma formatting
+    total_strike_length = comma(sum(strike_length, na.rm = TRUE)), # Total strike length with comma formatting
+    total_hours_lost = comma(sum(hours_lost * strikers, na.rm = TRUE))  # Total hours lost with comma formatting
+  )
+
+# Print the table
+kable(strike_summary, caption = "Summary of Total Strikes, Total Strikers, Total Strike Length, and Total Hours Lost")
+
+
+```
+
+```{r}
+# Summary statistics for multiple columns (e.g., 'Strikers' and 'Length' of strikes)
+strike_summary2 <- strike %>%
+  summarise(
+    mean_strikers = mean(strikers, na.rm = TRUE),
+    median_strikers = median(strikers, na.rm = TRUE),
+    sd_strikers = sd(strikers, na.rm = TRUE),
+    min_strikers = min(strikers, na.rm = TRUE),
+    max_strikers = max(strikers, na.rm = TRUE),
+    mean_length = mean(strike_length, na.rm = TRUE),
+    median_length = median(strike_length, na.rm = TRUE),
+    min_length = min(strike_length, na.rm = TRUE),   # Add minimum length
+    max_length = max(strike_length, na.rm = TRUE)    # Add maximum length
+  )
+
+kable(strike_summary2, caption = "More Summary")
 
 ```
 
 
-Total on strike 66:
-
-```{r counting_strikers}
-
-total_strikers <- sum(strike$strikers, na.rm = TRUE)
-print(total_strikers)
-
-
-```
 
 By month in 1966:
 
@@ -196,7 +219,7 @@ cities_once <- strike %>%
   summarise(num_cities_once = n())                  # Count the number of such cities
 
 # Print the number of cities that appear only once
-print(cities_once)
+kable(cities_once, caption="Number of 1-Strike Cities")
 ```
 
 ```{r}
@@ -228,16 +251,25 @@ leaflet(data = filtered_strike) %>%
 ```
 
 ```{r}
-leaflet(data = strike) %>%
-  addTiles() %>%
-  addHeatmap(
-    lng = ~longitude, 
-    lat = ~latitude, 
-    intensity = ~strikers, 
-    blur = 20, 
-    max = max(strike$strikers, na.rm = TRUE)  # Use max value for better scaling
-  ) %>%
-  setView(lng = -95, lat = 37, zoom = 4)  # Optional: Set the center of the map
 
+strike_clean <- strike %>%
+  filter(!is.na(longitude) & !is.na(latitude) & !is.na(strikers))  # Filter out rows with NA
+
+
+leaflet(data = strike_clean) %>%
+  addTiles() %>%  # Add default map tiles
+  addHeatmap(lng = ~longitude, lat = ~latitude, intensity = ~strikers, 
+             blur = 15, max = max(strike_clean$strikers, na.rm = TRUE), radius = 35)
+
+
+```
+
+```{r}
+# Assuming your 'Location' column is in the format '[City], [State]'
+strike <- strike %>%
+  mutate(State = str_trim(str_extract(Location, "(?<=,\\s)\\w{2}$")))
+
+# Check the first few rows to verify the 'State' column
+head(strike)
 ```
 

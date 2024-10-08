@@ -1,0 +1,35 @@
+---
+title: "geocode_strikes"
+output: html_document
+date: "2024-10-08"
+---
+
+this script is used to add geolocation data to strike dataset and save as 
+a new csv file.
+
+This allows preservation of the original data while eliminating the need 
+to wait ~2 minutes for geocoding to complete every time I run the analysis file.
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidygeocoder) #for geocoding
+```
+
+
+```{r}
+strike_raw <- read.csv("raw_strike_list.csv")
+
+strike_geocoded <- strike_raw %>%
+  geocode(address = Location, method = 'osm', lat = latitude, long = longitude)
+
+```
+
+```{r}
+write.csv(strike_geocoded, "strike_geocoded.csv")
+```
+
