@@ -1,0 +1,243 @@
+---
+title: "Analysis of 66 Strikes"
+output: html_document
+date: "2024-09-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r libraries, include=FALSE}
+
+#set wd, library, import data
+
+#setwd("C:\\Users\\alex\\Dropbox\\DTA project\\coding\\66strikes") #for home
+
+setwd("C:\\Users\\atrahan\\Desktop\\coding\\66strikes") #for work
+
+
+library(tidyverse)
+library (knitr)
+library (dplyr)
+library (tidyr) #for reshaping
+library(stringr) #for strings
+library(lubridate) #for dates
+library(tidygeocoder) #for geocoding
+library(leaflet) #for maps
+
+```
+
+
+
+```{r data, include=FALSE}
+#load strike data
+
+strike <- read.csv("raw_strike_list.csv")
+
+strike <- strike %>% select(-Notes)
+
+# Replace blank observations with NA
+strike <- strike %>%
+  mutate(across(everything(), ~ na_if(., "")))
+
+
+```
+
+```{r geocode, include=FALSE}
+# Use the geo function to get latitude and longitude
+
+# Keep this up here because it takes so long
+
+strike <- strike %>%
+  geocode(address = Location, method = 'osm', lat = latitude, long = longitude)
+
+```
+
+
+```{r wrangling, include=FALSE}
+#wrangling the data
+
+# Replace invalid dates with NA in the Date.Started column using parse_date_time
+strike <- strike %>%
+  mutate(Date.Started = parse_date_time(Date.Started, orders = c("mdy", "dmy", "ymd"), quiet = TRUE)) %>%
+  mutate(Date.Settled = parse_date_time(Date.Settled, orders = c("mdy", "dmy", "ymd"), quiet = TRUE))
+
+#strikers column
+colnames(strike)[which(colnames(strike) == "Number.of.Employees.on.Strike")] <- "strikers"
+
+# Remove all spaces from observations in the 'Strikers' column
+strike$strikers <- as.numeric(str_squish(strike$strikers))
+
+#remove canada and years other than 1966
+
+strike <- strike %>%
+  filter(!str_detect(Location, "Canada"))  # Keep rows where Location does not contain "Canada"
+
+strike <- strike %>%
+  filter(Date.Started >= as.Date("1966-01-01"))  # Keep rows where Date.Started is on or after January 1, 1966
+
+
+
+```
+
+# How many strikes in 1966? How many employees were on strike?
+
+Total strikes:
+
+```{r}
+# Print the total number of rows
+print(nrow(strike))
+
+```
+
+
+Total on strike 66:
+
+```{r counting_strikers}
+
+total_strikers <- sum(strike$strikers, na.rm = TRUE)
+print(total_strikers)
+
+
+```
+
+By month in 1966:
+
+```{r strikes_by_month, include=TRUE}
+# Create a new data frame summarizing strikes by month
+monthly_strikes <- strike %>%
+  mutate(Month = month(Date.Started, label = TRUE, abbr = TRUE)) %>%  # Extract month names
+  group_by(Month) %>%                                                 # Group by month
+  summarise(`Total Strikes` = n(),                                   # Count total strikes
+            `Total Strikers` = sum(strikers, na.rm = TRUE),        # Sum total strikers
+            .groups = "drop")                                       # Drop grouping after summarising
+
+# Flip the orientation of the table
+monthly_strikes_wide <- monthly_strikes %>%
+  pivot_longer(cols = `Total Strikes`:`Total Strikers`,             # Pivot longer for two rows
+               names_to = "Metric",                                  # Create a new column for metric names
+               values_to = "Count")                                 # Create a new column for values
+
+# Reshape into wide format
+monthly_summary <- monthly_strikes_wide %>%
+  pivot_wider(names_from = Month, values_from = Count)             # Pivot wider to get months as columns
+
+# Print the resulting table
+kable(monthly_summary, caption = "Total Strikes and Total Strikers by Month")
+```
+
+
+
+# What cities are in the data?
+
+Top 5 by number of strikes:
+
+```{r cities_top_5}
+
+# Count the appearances of each city and print the top 5 cities
+top_cities5 <- strike %>%
+  filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
+  group_by(Location) %>%                             # Group by city
+  summarise(count = n()) %>%                        # Count occurrences
+  arrange(desc(count)) %>%                          # Arrange in descending order
+  head(5)                                           # Get the top 5 cities
+
+# Print the top 5 cities
+kable(top_cities5, caption = "Top 5 Cities by Number of Strikers")
+
+```
+
+
+
+All cities:
+
+```{r}
+# Summarize the total number of employees on strike and number of strikes for each city
+city_summary <- strike %>%
+  filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
+  group_by(Location) %>%                             # Group by city
+  summarise(
+    total_strikes = n(),                            # Count the number of strikes
+    total_strikers = sum(strikers, na.rm = TRUE)  # Sum of employees on strike
+  ) %>%
+  arrange(desc(total_strikes))                       # Arrange in descending order of strikes
+
+# Create a table of the top 5 cities by total_strikes
+top_5_strikes <- city_summary %>%
+  slice_head(n = 5)  # Get the top 5 cities by total strikes
+
+# Print the top 5 cities by total_strikes
+kable(top_5_strikes, caption = "Top 5 Cities by Number of Strikes")
+
+# Create a table of the top 5 cities by total_strikers
+top_5_strikers <- city_summary %>%
+  arrange(desc(total_strikers)) %>%  # Arrange by total_strikers in descending order
+  slice_head(n = 5)  # Get the top 5 cities by total strikers
+
+# Print the top 5 cities by total_strikers
+kable(top_5_strikers, caption = "Top 5 Cities by Number of Strikers")
+
+# Print a table of all cities
+kable(city_summary, caption = "Summary of Strikes and Employees on Strike by City")
+
+```
+
+
+```{r}
+# Count the number of cities that appear only once
+cities_once <- strike %>%
+  filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
+  group_by(Location) %>%                             # Group by city
+  summarise(count = n()) %>%                        # Count occurrences
+  filter(count == 1) %>%                            # Filter for cities that appear only once
+  summarise(num_cities_once = n())                  # Count the number of such cities
+
+# Print the number of cities that appear only once
+print(cities_once)
+```
+
+```{r}
+# Create a leaflet map
+leaflet(data = strike) %>%
+  addTiles() %>%  # Add OpenStreetMap tiles
+  setView(lng = mean(strike$longitude, na.rm = TRUE), lat = mean(strike$latitude, na.rm = TRUE), zoom = 4) %>%
+  addCircleMarkers(~longitude, ~latitude, radius = 5, color = "red", stroke = FALSE, fillOpacity = 0.5) %>%
+  addLegend("bottomright", pal = colorFactor("red", domain = NULL), values = NULL, title = "Strikes")
+
+```
+
+```{r}
+
+# Define the states of interest
+states_of_interest <- c("Wisconsin", "Illinois", "Indiana", "Michigan", "Ohio", "Pennsylvania", "New York")
+
+# Filter the strike data for the specified states
+filtered_strike <- strike %>%
+  filter(str_detect(Location, paste(states_of_interest, collapse = "|")))
+
+# Create a leaflet map for the specified states
+leaflet(data = filtered_strike) %>%
+  addTiles() %>%  # Add OpenStreetMap tiles
+  setView(lng = -84, lat = 41, zoom = 6) %>%  # Center the map on the Midwest region
+  addCircleMarkers(~longitude, ~latitude, radius = 5, color = "red", stroke = FALSE, fillOpacity = 0.5) %>%
+  addLegend("bottomright", pal = colorFactor("red", domain = NULL), values = NULL, title = "Strikes")
+
+```
+
+```{r}
+leaflet(data = strike) %>%
+  addTiles() %>%
+  addHeatmap(
+    lng = ~longitude, 
+    lat = ~latitude, 
+    intensity = ~strikers, 
+    blur = 20, 
+    max = max(strike$strikers, na.rm = TRUE)  # Use max value for better scaling
+  ) %>%
+  setView(lng = -95, lat = 37, zoom = 4)  # Optional: Set the center of the map
+
+```
+
