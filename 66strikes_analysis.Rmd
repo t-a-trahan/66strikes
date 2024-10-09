@@ -13,7 +13,7 @@ The year 1966 is an interesting and important year regarding work stoppages with
 
 Furthermore, the data found in this document turns our current picture of 1960s military industry labor on its head. Under "Ordnance and accessories," The Bureau of Labor Statistics Work Stoppage Analysis for the year 1966 lists only thirteen strikes involving 8680 workers and 62,500 worker-hours lost. The DTA Labor Relations documents demonstrate work stoppages on a much wider scale: around eight times as many strikes involving five times as many workers.
 
-It should be noted well that limitations within the data mean that this increase is only the beginning of a picture much deeper and wider than the one found in the BLS report.
+Because of limitations to the DTA Labor Relations data, this is only the short glimpse of the much deeper and broader picture of US labor unrest during the Vietnam War.
 
 This finding allows us to begin understanding the social and political economic effects of the Johnson administration's decision to intensify military involvement in Vietnam and begin folding this new understanding into the wider history of wartime political economy and labor history in the twentieth century US.
 
@@ -87,10 +87,9 @@ strike <- strike %>%
 #cleaning up "Type" column
 strike <- strike %>%
   mutate(Type = tolower(Type)) %>%
-  mutate(Type = ifelse(str_detect(Type, "potential"), "potential", Type)) %>%
-  mutate(Type = ifelse(str_detect(Type, "wildcat"), "wildcat", Type)) %>%
-  mutate(Type = ifelse(str_detect(Type, "strike"), "strike", Type))
-
+  mutate(Type = ifelse(str_detect(Type, "potential"), "potential strike (averted)", Type)) %>%
+  mutate(Type = ifelse(str_detect(Type, "wildcat"), "wildcat strike", Type)) %>%
+  mutate(Type = if_else(str_detect(Type, "strike") & !str_detect(Type, "potential") & !str_detect(Type, 'wildcat'), "authorized strike", Type))
 # Remove all spaces from observations in the 'Strikers' column
 strike$strikers <- as.numeric(str_squish(strike$strikers))
 
@@ -116,12 +115,6 @@ total_summary <- strike %>%
 # Print the summary table
 kable(total_summary, caption = "Total Events and Total Workers Involved")
 ```
-```{r, echo=FALSE}
-# Filter the strike dataframe to exclude rows where 'Type' is exactly 'potential'
-strike_filtered <- strike %>%
-  filter(Type != "potential")  # Exclude rows with 'Type' equal to 'potential'
-  
-```
 
 
 ```{r,echo=FALSE}
@@ -139,6 +132,9 @@ kable(type_counts, caption = "Count of Observations by Type")
 
 ```{r summary_table, echo=FALSE}
 
+# Filter the strike dataframe to exclude rows where 'Type' is exactly 'potential'
+strike_filtered <- strike %>%
+  filter(Type != "potential strike (averted)")  # Exclude rows with 'Type' equal to 'potential'
 
 # Create a summary table with total strikes, total strikers, total strike length, and total hours lost
 strike_summary <- strike_filtered %>%
@@ -150,7 +146,6 @@ strike_summary <- strike_filtered %>%
 
 # Print the table
 kable(strike_summary, caption = "Summary of Total Strikes, Total Strikers, and Total Workdays Lost to both Authorized and Wildcat Strikes")
-
 
 ```
 
@@ -337,6 +332,18 @@ leaflet(data = filtered_strike) %>%
 
 
 ```{r, echo=FALSE}
+
+# Count the number of cities that appear only once
+cities_once <- strike %>%
+  filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
+  group_by(Location) %>%                             # Group by city
+  summarise(count = n()) %>%                        # Count occurrences
+  filter(count == 1) %>%                            # Filter for cities that appear only once
+  summarise(num_cities_once = n())                  # Count the number of such cities
+
+# Print the number of cities that appear only once
+kable(cities_once, caption="Number of 1-Strike Cities")
+
 # Summarize the total number of employees on strike and number of strikes for each city
 city_summary <- strike %>%
   filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
@@ -368,20 +375,6 @@ city_summary_sorted <- city_summary %>%
 
 kable(city_summary_sorted, caption = "Summary of Strikes and Employees on Strike by City")
 
-```
-
-
-```{r, echo=FALSE}
-# Count the number of cities that appear only once
-cities_once <- strike %>%
-  filter(!is.na(latitude) & !is.na(longitude)) %>%  # Keep rows with valid lat/long
-  group_by(Location) %>%                             # Group by city
-  summarise(count = n()) %>%                        # Count occurrences
-  filter(count == 1) %>%                            # Filter for cities that appear only once
-  summarise(num_cities_once = n())                  # Count the number of such cities
-
-# Print the number of cities that appear only once
-kable(cities_once, caption="Number of 1-Strike Cities")
 ```
 
 
