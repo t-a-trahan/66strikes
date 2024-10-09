@@ -65,8 +65,9 @@ strike <- strike %>% select(-Notes, Days.Lost)
 strike <- strike %>%
   mutate(across(where(is.character), ~ na_if(., "")))
 
-#strikers column
+#column renames
 colnames(strike)[which(colnames(strike) == "Number.of.Employees.on.Strike")] <- "strikers"
+colnames(strike)[which(colnames(strike) == "Company.Organization")] <- "company"
 
 # Ensure 'Date.Started' and 'Date.Settled' are in date format, then create 'Length' column
 strike <- strike %>%
@@ -296,10 +297,13 @@ strike_clean <- strike %>%
 # Create an interactive leaflet map
 leaflet(data = strike_clean) %>%
   addTiles() %>%
-  addCircleMarkers(~longitude, ~latitude, popup = ~paste("Location:", Location, "<br>", 
+  addCircleMarkers(~longitude, ~latitude, popup = ~paste("City:", Location, "<br>",
+                                                         "Company:" , company, "<br>",
+                                                         "Type:" , Type, "<br>",
                                                          "Strikers:", strikers, "<br>",
-                                                         "Strike Length:", strike_length, "days"),
-                   radius = 5, color = "red", stroke = FALSE, fillOpacity = 0.5)
+                                                         "Length:", strike_length, "days"),
+                   radius = 5, color = "red", stroke = FALSE, fillOpacity = 0.5)%>%
+  addLegend("bottomright", pal = colorFactor("red", domain = NULL), values = NULL, title = "US Military Industry Strikes")
 ```
 
 ```{r rust_belt_map, echo=FALSE}
@@ -317,11 +321,13 @@ filtered_strike <- strike %>%
 leaflet(data = filtered_strike) %>%
   addTiles() %>%  # Add OpenStreetMap tiles
   setView(lng = -84, lat = 41, zoom = 6) %>%  # Center the map on the Midwest region
-  addCircleMarkers(~longitude, ~latitude, popup = ~paste("Location:", Location, "<br>", 
+  addCircleMarkers(~longitude, ~latitude, popup = ~paste("City:", Location, "<br>",
+                                                         "Company:" , company, "<br>",
+                                                         "Type:" , Type, "<br>",
                                                          "Strikers:", strikers, "<br>",
-                                                         "Strike Length:", strike_length, "days"),
+                                                         "Length:", strike_length, "days"),
                    radius = 5, color = "red", stroke = FALSE, fillOpacity = 0.5) %>%
-  addLegend("bottomright", pal = colorFactor("red", domain = NULL), values = NULL, title = "Strikes")
+  addLegend("bottomright", pal = colorFactor("red", domain = NULL), values = NULL, title = "Rust Belt Strikes")
 
 ```
 
