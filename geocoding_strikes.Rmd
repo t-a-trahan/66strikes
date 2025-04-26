@@ -29,6 +29,8 @@ strike_geocoded <- strike_raw %>%
 
 ```
 
+
+
 ```{r}
 write.csv(strike_geocoded, "strike_geocoded.csv")
 ```
