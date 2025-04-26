@@ -29,9 +29,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #set wd, library, import data
 
-setwd("C:\\Users\\alex\\Dropbox\\DTA project\\coding\\66strikes") #for home
+#setwd("C:\\Users\\alex\\Dropbox\\DTA project\\coding\\66strikes") #for home
 
-#setwd("C:\\Users\\atrahan\\Desktop\\coding\\66strikes") #for work
+setwd("C:\\Users\\atrahan\\Desktop\\coding\\66strikes") #for work
 
 
 library(tidyverse)
@@ -122,7 +122,9 @@ strike <- strike %>%
 # BLS Data for 1966
 
 ```{r bls, echo=FALSE, out.width='100%', fig.cap="BLS Work Stoppages Analyis, 1966 (p. 9)"}
-knitr::include_graphics("C:\\Users\\alex\\Dropbox\\DTA project\\coding\\66strikes\\bls.png")
+#knitr::include_graphics("C:\\Users\\alex\\Dropbox\\DTA project\\coding\\66strikes\\bls.png") # for home
+
+knitr::include_graphics("C:\\Users\\atrahan\\Desktop\\coding\\66strikes") #for work
 
 
 ```
