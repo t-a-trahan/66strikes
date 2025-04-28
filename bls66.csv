@@ -1,0 +1,35 @@
+Industry,Trype,NumberOfStrikes,WorkersInvolved,NumberOfIdleWorkersDays,PercentOfEstimatedTotalWorkingTime
+All industries,,4405,1960000,25400000,0.19
+Manufacturing,,2295,922000,13700000,0.28
+Ordnance and accessories,Manufacturing,13,8680,62500,0.1
+Food and kindred products,Manufacturing,187,46600,528000,0.12
+Tobacco manufacturing,Manufacturing,,,,
+Textile mill products,Manufacturing,56,25700,195000,0.08
+Apparel and other finish products made from fabrics and similar materials,Manufacturing,100,11800,263000,0.07
+"Lumber and wood products, except furniture",Manufacturing,48,10300,253000,0.16
+Furniture and fixtures,Manufacturing,81,16800,199000,0.17
+Paper and allied products,Manufacturing,92,26200,336000,0.2
+"Printing, publishing, and allied industries",Manufacturing,66,19500,621000,0.24
+Checmicals and allied products,Manufacturing,151,44600,727000,0.3
+Petroleum refining and related industries,Manufacturing,14,1240,13500,0.03
+Rubber and miscellaneous plastic products,Manufacturing,83,27300,433000,0.33
+Leather and leather products,Manufacturing,32,8220,99200,0.11
+"stone, clay, and glass products",Manufacturing,142,31600,594000,0.36
+primary metal industries,Manufacturing,219,98600,1540000,0.46
+"fabricated metal products, except ordnance, machinery, and transporation equipment",Manufacturing,277,76100,1290000,0.37
+"machinery, except electrical",Manufacturing,301,136000,2440000,0.51
+"Electrical machinery, equipment, and supplies",Manufacturing,189,168000,2410000,0.5
+transportation equipment,Manufacturing,162,150000,1330000,0.27
+"professional, scientific, and controlling instruments; photogrpahic and optical goods; watches and clocks",Manufacturing,37,5930,148000,0.14
+miscellaneous manufacturing industries,Manufacturing,48,8480,181000,0.16
+nonmanufacturing,,2110,1040000,11700000,0.14
+"agriculture, forestrty, and finisheries",nonmanufacturing,20,5490,50900,
+mining,nonmanufacturing,194,96100,794000,0.5
+contract construction,nonmanufacturing,977,455000,6140000,0.73
+"transportation, communication, electric, gas and sanitary services",nonmanufacturing,240,312000,3390000,0.32
+wholesale and retail trade,nonmanufacturing,365,42300,508000,0.02
+"financ,e insurance, and real estate",nonmanufacturing,14,1730,27600,
+services,nonmanufacturing,159,21100,358000,0.01
+government,nonmanufacturing,142,105000,455000,0.02
+state gov,nonmanufacturing,9,3090,6010,
+local gov,nonmanufacturing,133,102000,449000,

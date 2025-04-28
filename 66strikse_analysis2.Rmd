@@ -1,0 +1,82 @@
+---
+title: "strike_analysis_v2"
+output: html_document
+date: "2025-04-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+library(scales)
+
+```
+
+
+
+
+```{r}
+
+df<- read_csv("C:\\Users\\atrahan\\Desktop\\coding\\66strikes\\strike_list_clean.csv")
+
+df <- df %>%
+  rename(
+    DateStarted = DateStartedOrReported,
+    OnStrike='Number of Employees on Strike',
+    TotalEmployees='Total employees at location'
+    )%>%
+  mutate(
+    DateStarted = as.Date(DateStarted, format = "%m/%d/%Y"), 
+    DateSettled = as.Date(DateSettled, format = "%m/%d/%Y"), 
+    OnStrike = as.numeric(OnStrike),
+    TotalEmployees=as.numeric(TotalEmployees),
+    #DaysLost=NA, 
+    DaysLost = as.numeric(DateSettled - DateStarted),
+    WorkerHoursLostMin=OnStrike*DaysLost,
+    WorkerHoursLostMax=TotalEmployees*DaysLost
+  )
+
+sum_on_strike <- sum(df$OnStrike, na.rm = TRUE)
+sum_days_lost <- sum(df$DaysLost, na.rm = TRUE)
+sum_worker_hours_lost_min <- sum(df$WorkerHoursLostMin, na.rm = TRUE)
+sum_worker_hours_lost_max <- sum(df$WorkerHoursLostMax, na.rm = TRUE)
+
+# Create summary table
+summary_table <- tibble(
+  Metric = c(
+    "Total Workers On Strike",
+    "Total Work Days Lost",
+    "Total Work Hours Lost (Min)",
+    "Total Work Hours Lost (Max)"
+  ),
+  Value = c(
+    sum_on_strike,
+    sum_days_lost,
+    sum_worker_hours_lost_min,
+    sum_worker_hours_lost_max
+  )
+) %>%
+  mutate(Value = comma(Value))  # <-- HERE: add commas AFTER
+
+# Print with nice styling
+summary_table %>%
+  kable(caption = "Summary of Strike Data", format = "html") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE,
+    position = "center"
+  )
+
+```
+
+```{r}
+
+dfBLS<-read_csv("C:\\Users\\atrahan\\Desktop\\coding\\66strikes\\bls66.csv")
+
+kable(dfBLS)
+
+```
+
