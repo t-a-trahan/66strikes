@@ -30,6 +30,7 @@ df<- read_csv(here("strike_list_clean.csv"))
 df <- df %>%
   rename(
     DateStarted = DateStartedOrReported,
+    ContractType=ConractType,
     OnStrike='Number of Employees on Strike',
     TotalEmployees='Total employees at location'
     )%>%
@@ -48,8 +49,30 @@ df <- df %>%
 
 
 ```{r}
-# Count occurrences of each ActionType
+# Count occurrences of each ActionType in whole dataset
 action_summary <- df %>%
+  count(ActionType, sort = TRUE)
+
+# Display using kable
+action_summary %>%
+  knitr::kable(
+    caption = "Frequency of Each Action Type",
+    format = "html",
+    col.names = c("Action Type", "Count")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "center"
+  )
+```
+
+```{r}
+# Count occurrences of each ActionType that ended in 1966
+df66 <- df %>%
+  filter(DateSettled>"1966-01-01")
+
+action_summary <- df66 %>%
   count(ActionType, sort = TRUE)
 
 # Display using kable
@@ -69,13 +92,16 @@ action_summary %>%
 
 ```{r}
 
-dfStrike <- df %>%
-  filter(ActionType %in% c("wildcat", "strike","strike [assumed authorized]"))
+dfStrike66 <- df %>%
+  filter(ActionType %in% c("wildcat", "strike"))%>%
+  filter(DateSettled>="1966-01-01") #select all strikes settled in 1966. DF does not include strikes settled later than 1966.
 
 
-sum_on_strike <- sum(dfStrike$OnStrike, na.rm = TRUE)
-sum_days_lost_min <- sum(dfStrike$WorkerDaysLostMin, na.rm = TRUE)
-sum_days_lost_max<-sum(dfStrike$WorkerDaysLostMax,na.rm=TRUE)
+sum_on_strike <- sum(dfStrike66$OnStrike, na.rm = TRUE)
+sum_days_lost_min <- sum(dfStrike66$WorkerDaysLostMin, na.rm = TRUE)
+sum_days_lost_max<-sum(dfStrike66$WorkerDaysLostMax,na.rm=TRUE)
+
+
 
 # Create summary table
 summary_table <- tibble(
@@ -94,7 +120,7 @@ summary_table <- tibble(
 
 # Print with nice styling
 summary_table %>%
-  kable(caption = "Summary of Strike Data", format = "html") %>%
+  kable(caption = "MOCOM Strike Data, 1966", format = "html") %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = FALSE,
@@ -119,6 +145,10 @@ dfBLS %>%
     full_width = FALSE,
     position = "center"
   )
+
+```
+
+```{r}
 
 ```
 
