@@ -1,7 +1,7 @@
 pdfIndex,CompanyName,location,union_all,union0,local0,union1,local1,union2,local2,union3,local3,ContractType,PrimeIfSub,ActionType,DateStartedOrReported,DateSettled,DaysLost,Number of Employees on Strike,Total employees at location,Cause,Outcome,Notes
-2,Airtemp Div of chrysler,"Dayton, Ohio",IUE 775,,,,,,,,,,,wildcat,9/8/1966,9/12/1966,5,,,,,
-3,Aluminim Alloys Corp,"Detroit, Michigan",UAW 985,,,,,,,,,,,strike,11/11/1965,3/15/1966,125,,,,plant sold,
-,Aluminum Co of America,"Cleveland, Ohio",International Die Sinkers Conference 10,,,,,,,,,,,strike,7/1/1966,7/24/1966,24,,,,,
+2,Airtemp Div of chrysler,"Dayton, Ohio",IUE 775,iue,775,,,,,,,,,wildcat,9/8/1966,9/12/1966,5,,,,,
+3,Aluminim Alloys Corp,"Detroit, Michigan",UAW 985,uaw,985,,,,,,,,,strike,11/11/1965,3/15/1966,125,,,,plant sold,
+,Aluminum Co of America,"Cleveland, Ohio",International Die Sinkers Conference 10,International Die Sinkers Conference,10,,,,,,,,,strike,7/1/1966,7/24/1966,24,,,,,
 5,Amer Bosch Arma Corp,"Garden City, New York",IUE 418; IUE Production 460; IUE Clerical 464,iue,418,iue,460,iue,464,,,,,potential,n/a,10/6/1966,n/a,,,,,
 4,Amer Hoist & Derrick,"St Paul, Minnesota",Oper Engrs 36; IAM 459; Int Molders 232; IBEW 110,Operators Engineers [??],36,IAM,459,International Molders,232,IBEW,110,,,Strike,6/16/1966,7/9/1966,24,,,,,
 6,Amer LaFrance Div Sterling Precision,"Elmira, New York",IAM 421,iam,421,,,,,,,,,Strike,5/2/1966,6/4/1966,34,,,,,

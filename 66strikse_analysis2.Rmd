@@ -28,9 +28,9 @@ stopifnot(file.exists(here("bls66.csv")))
 df<- read_csv(here("strike_list_clean.csv"))
 
 df <- df %>%
+  select(-DaysLost)%>%
   rename(
     DateStarted = DateStartedOrReported,
-    ContractType=ConractType,
     OnStrike='Number of Employees on Strike',
     TotalEmployees='Total employees at location'
     )%>%
@@ -39,16 +39,18 @@ df <- df %>%
     DateSettled = as.Date(DateSettled, format = "%m/%d/%Y"), 
     OnStrike = as.numeric(OnStrike),
     TotalEmployees=as.numeric(TotalEmployees),
-    #DaysLost=NA, 
     StrikeLength = as.numeric(DateSettled - DateStarted),
     WorkerDaysLostMin=OnStrike*StrikeLength,
     WorkerDaysLostMax=TotalEmployees*StrikeLength,
-    ActionType = str_to_lower(ActionType)
+    ActionType = str_to_lower(ActionType),
+    across(c(union0,union1,union2,union3), str_to_lower)
     )
 ```
 
 
 ```{r}
+#summarizing whole dataset
+
 # Count occurrences of each ActionType in whole dataset
 action_summary <- df %>%
   count(ActionType, sort = TRUE)
@@ -65,9 +67,27 @@ action_summary %>%
     full_width = FALSE,
     position = "center"
   )
+
+#count unions
+df %>%
+  pivot_longer(cols = c(union0, union1, union2, union3), names_to = "union_col", values_to = "union") %>%
+  filter(!is.na(union), union != "") %>%
+  count(union, sort = TRUE) %>%
+  knitr::kable(
+    caption = "Union Mentions Across All Union Columns",
+    col.names = c("Union", "Count"),
+    format = "html"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "center"
+  )
 ```
 
 ```{r}
+#summarizing 1966
+
 # Count occurrences of each ActionType that ended in 1966
 df66 <- df %>%
   filter(DateSettled>"1966-01-01")
@@ -87,6 +107,23 @@ action_summary %>%
     full_width = FALSE,
     position = "center"
   )
+
+#count unions
+df66 %>%
+  pivot_longer(cols = c(union0, union1, union2, union3), names_to = "union_col", values_to = "union") %>%
+  filter(!is.na(union), union != "") %>%
+  count(union, sort = TRUE) %>%
+  knitr::kable(
+    caption = "Union Mentions Across All Union Columns",
+    col.names = c("Union", "Count"),
+    format = "html"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "center"
+  )
+
 ```
 
 
